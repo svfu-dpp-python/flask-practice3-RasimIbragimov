@@ -10,11 +10,22 @@ def book_list():
     books = db.session.execute(query).scalars()
     return render_template("book_list.html", books=books)
 
-def book_edit():
-    book = Book()
+def book_edit(pk=None):
+    book = db.get_or_404(Book, pk) if pk else Book()
     if request.method == 'POST':
         book.name = request.form["name"]
-        db.session.add(book)
+        if pk:
+            book.verified = True
+        else:
+            db.session.add(book)
         db.session.commit()
         return redirect(url_for("book_list"))
-    return render_template("book_edit.html")
+    return render_template("book_edit.html", book=book)
+
+def book_delete(pk):
+    book = db.get_or_404(Book, pk)
+    if request.method == 'POST':
+        db.session.delete(book)
+        db.session.commit()
+        return redirect(url_for("book_list"))
+    return render_template("book_delete.html", tobedeleted=book)
